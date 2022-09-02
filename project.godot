@@ -1,0 +1,21 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="MyGodot4Utils"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.0", "Vulkan Clustered")
+run/low_processor_mode=true
+run/low_processor_mode_sleep_usec=16000
+
+[display]
+
+window/vsync/vsync_mode=0

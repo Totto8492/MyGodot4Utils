@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3 uid="uid://c5c0dhpew4cjd"]
+
+[sub_resource type="GDScript" id="GDScript_n32di"]
+script/source = "extends Control
+
+const URL := preload(\"res://url.gd\")
+const HTTP := preload(\"res://http.gd\")
+const DebugUtils := preload(\"res://debugutils.gd\")
+
+var http := HTTP.new()
+
+
+func _ready() -> void:
+	const SAMPLE_URL := \"https://httpbin.org/get\"
+	var url := URL.new()
+	var err := url.parse(SAMPLE_URL)
+	assert(err == OK)
+	assert(url.to_string() == SAMPLE_URL)
+
+	var body: PackedByteArray = await http.request(url)
+	%Body.text = body.get_string_from_utf8()
+
+
+func _process(_delta: float) -> void:
+	var debug := DebugUtils.new()
+	var busy := http.is_busy()
+	var error := http.last_error
+	var status := debug.get_enum_key(\"HTTPClient\", \"Status\", http.get_status())
+	var text := \"busy: %s\\nerror: %s\\nstatus: %s\" % [busy, error, status]
+
+	%Status.text = text
+	http.poll()
+"
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_n32di")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 26.0
+offset_bottom = 43.0
+
+[node name="Status" type="Label" parent="MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+offset_right = 1.0
+offset_bottom = 23.0
+size_flags_vertical = 1
+
+[node name="Body" type="Label" parent="MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+offset_left = 5.0
+offset_right = 6.0
+offset_bottom = 23.0
+size_flags_vertical = 1
