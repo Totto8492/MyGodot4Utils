@@ -13,6 +13,7 @@ enum Method {
 var http := HTTPClient.new()
 var current_url := URL.new()
 var last_error := OK
+var canceling := false
 
 signal do_poll
 
@@ -45,6 +46,9 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictiona
 
 	while http.get_status() == HTTPClient.STATUS_CONNECTING or http.get_status() == HTTPClient.STATUS_RESOLVING:
 		await do_poll
+		if canceling:
+			canceling = false
+			return PackedByteArray()
 
 	var path_query := http.query_string_from_dict(query)
 	if not path_query.is_empty():
@@ -57,6 +61,9 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictiona
 
 	while http.get_status() == HTTPClient.STATUS_REQUESTING:
 		await do_poll
+		if canceling:
+			canceling = false
+			return PackedByteArray()
 
 	if not http.has_response():
 		return PackedByteArray()
@@ -66,11 +73,22 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictiona
 		var chunk = http.read_response_body_chunk()
 		if chunk.size() == 0:
 			await do_poll
+			if canceling:
+				canceling = false
+				break
+
 			continue
 
 		rb.append_array(chunk)
 
+	canceling = false
 	return rb
+
+
+func cancel() -> void:
+	canceling = true
+	http.close()
+	emit_signal("do_poll")
 
 
 func is_busy() -> bool:
