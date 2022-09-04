@@ -8,6 +8,16 @@
 
 config_version=5
 
+_global_script_classes=[{
+"base": "RefCounted",
+"class": &"Cookie",
+"language": &"GDScript",
+"path": "res://cookie.gd"
+}]
+_global_script_class_icons={
+"Cookie": ""
+}
+
 [application]
 
 config/name="MyGodot4Utils"
