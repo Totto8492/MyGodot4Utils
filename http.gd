@@ -109,5 +109,13 @@ func has_error() -> bool:
 	return last_error != OK
 
 
+func get_response_code() -> int:
+	return http.get_response_code()
+
+
+func get_response_headers() -> PackedStringArray:
+	return http.get_response_headers()
+
+
 func get_status() -> int:
 	return http.get_status()
