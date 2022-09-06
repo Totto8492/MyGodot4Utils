@@ -19,15 +19,15 @@ func _ready() -> void:
 	print(header)
 	print_debug("OK")
 
-	var datetime := Cookie.make_iso8601_from_rfc7231("Wed, 21 Oct 2015 07:28:00 GMT")
-	assert(datetime == "2015-10-21T07:28:00")
+	var datetime := Cookie.get_unix_time_from_rfc7231("Wed, 21 Oct 2015 07:28:00 GMT")
+	assert(datetime == 1445412480)
 	print(datetime)
 	print_debug("OK")
 
-	var empty_time := Cookie.make_iso8601_from_rfc7231("")
-	assert(empty_time.is_empty())
+	var empty_time := Cookie.get_unix_time_from_rfc7231("")
+	assert(not empty_time)
 	print_debug("OK")
 
-	var bad_time := Cookie.make_iso8601_from_rfc7231("jpt82j b2lohrvq")
-	assert(bad_time.is_empty())
+	var bad_time := Cookie.get_unix_time_from_rfc7231("jpt82j b2lohrvq")
+	assert(not bad_time)
 	print_debug("OK")

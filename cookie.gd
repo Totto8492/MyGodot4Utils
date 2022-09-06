@@ -47,12 +47,12 @@ static func make_string_from_cookies(cookies: Array) -> String:
 	return "cookie: " + "; ".join(kvs)
 
 
-static func make_iso8601_from_rfc7231(from: String) -> String:
+static func get_unix_time_from_rfc7231(from: String) -> int:
 	var regex_string := "^(?<week>\\w{3}), (?<day>\\d{2}) (?<month>\\w{3}) (?<year>\\d{4}) (?<hour>\\d{2}):(?<minute>\\d{2}):(?<second>\\d{2}) GMT$"
 	var regex := RegEx.create_from_string(regex_string)
 	var result := regex.search(from)
 	if result == null:
-		return ""
+		return 0
 
 	var dict := {}
 	for i in result.names:
@@ -61,7 +61,7 @@ static func make_iso8601_from_rfc7231(from: String) -> String:
 	var monthly := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 	var month_idx := monthly.find(dict["month"]) + 1
 	if month_idx == -1:
-		return ""
+		return 0
 
 	dict["month"] = str(month_idx)
-	return Time.get_datetime_string_from_datetime_dict(dict, false)
+	return Time.get_unix_time_from_datetime_dict(dict)
