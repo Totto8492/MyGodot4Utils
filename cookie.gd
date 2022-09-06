@@ -2,7 +2,7 @@ class_name Cookie extends RefCounted
 
 var key := ""
 var value := ""
-var expires := ""
+var expires := 0
 var domain := ""
 var path := ""
 
@@ -21,11 +21,30 @@ static func make_from_header(header: String) -> Cookie:
 	if header_name != "set-cookie":
 		return new()
 
-	var base := header.get_slice(":", 1).strip_edges()
+	var base := header.substr(header.find(":") + 1).strip_edges()
 	var args := base.split("; ")
 	var kv := args[0].split("=")
 	cookie.key = kv[0]
 	cookie.value = kv[1]
+	args.remove_at(0)
+	var expire_time := 0
+	var max_age_time := 0
+	for i in args:
+		var k := i.get_slice("=", 0).to_lower()
+		var v := i.get_slice("=", 1)
+		if k == "expires":
+			expire_time = get_unix_time_from_rfc7231(v)
+
+		if k == "max-age":
+			max_age_time = v.to_int()
+
+	if expire_time:
+		cookie.expires = expire_time
+
+	if max_age_time:
+		var now := Time.get_unix_time_from_system()
+		cookie.expires = now + max_age_time
+
 	return cookie
 
 
