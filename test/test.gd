@@ -35,7 +35,8 @@ func _ready() -> void:
 	print_debug("OK")
 
 	var max_age_cookie_header := "Set-Cookie: foo=bar; Max-Age=100; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
-	var max_age_cookie := Cookie.make_from_header(max_age_cookie_header)
-	var max_age_result := Time.get_unix_time_from_system() - max_age_cookie.expires
-	assert(max_age_result <= 100)
+	var now := Time.get_unix_time_from_system() as int
+	var max_age_cookie := Cookie.make_from_header(max_age_cookie_header, now)
+	var max_age_result := max_age_cookie.expires - now
+	assert(max_age_result == 100)
 	print_debug("OK")

@@ -15,7 +15,7 @@ func _to_string() -> String:
 	return str([key, value, expires, domain, path])
 
 
-static func make_from_header(header: String) -> Cookie:
+static func make_from_header(header: String, now: int = 0) -> Cookie:
 	var cookie := new()
 	var header_name := header.get_slice(":", 0).to_lower()
 	if header_name != "set-cookie":
@@ -37,21 +37,23 @@ static func make_from_header(header: String) -> Cookie:
 
 		if k == "max-age":
 			max_age_time = v.to_int()
+			if max_age_time < 0 or str(max_age_time) != v:
+				max_age_time = 0
 
 	if expire_time:
 		cookie.expires = expire_time
 
 	if max_age_time:
-		var now := Time.get_unix_time_from_system()
-		cookie.expires = now + max_age_time
+		var _now := now if now else (Time.get_unix_time_from_system() as int)
+		cookie.expires = _now + max_age_time
 
 	return cookie
 
 
-static func make_from_response_headers(headers: PackedStringArray) -> Array:
+static func make_from_response_headers(headers: PackedStringArray, now: int = 0) -> Array:
 	var cookies := []
 	for i in headers:
-		var cookie := make_from_header(i)
+		var cookie := make_from_header(i, now)
 		if not cookie.is_empty():
 			cookies.push_back(cookie)
 
