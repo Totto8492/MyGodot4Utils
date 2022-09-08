@@ -5,7 +5,8 @@ const HTTP := preload("res://http.gd")
 const DebugUtils := preload("res://debugutils.gd")
 
 var http := HTTP.new()
-
+@onready var bodyLabel := %Body as Label
+@onready var statusLabel := %Status as Label
 
 func _ready() -> void:
 	const SAMPLE_URL := "https://httpbin.org/get"
@@ -15,7 +16,7 @@ func _ready() -> void:
 	assert(url.to_string() == SAMPLE_URL)
 
 	var body: PackedByteArray = await http.request(url)
-	%Body.text = body.get_string_from_utf8()
+	bodyLabel.text = body.get_string_from_utf8()
 
 
 func _process(_delta: float) -> void:
@@ -25,5 +26,5 @@ func _process(_delta: float) -> void:
 	var status := debug.get_enum_key("HTTPClient", "Status", http.get_status())
 	var text := "busy: %s\nerror: %s\nstatus: %s" % [busy, error, status]
 
-	%Status.text = text
+	statusLabel.text = text
 	http.poll()
