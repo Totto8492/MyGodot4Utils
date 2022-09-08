@@ -50,8 +50,8 @@ static func make_from_header(header: String, now: int = 0) -> Cookie:
 	return cookie
 
 
-static func make_from_response_headers(headers: PackedStringArray, now: int = 0) -> Array:
-	var cookies := []
+static func make_from_response_headers(headers: PackedStringArray, now: int = 0) -> Array[Cookie]:
+	var cookies: Array[Cookie] = []
 	for i in headers:
 		var cookie := make_from_header(i, now)
 		if not cookie.is_empty():
@@ -60,8 +60,8 @@ static func make_from_response_headers(headers: PackedStringArray, now: int = 0)
 	return cookies
 
 
-static func make_string_from_cookies(cookies: Array) -> String:
-	var kvs := []
+static func make_string_from_cookies(cookies: Array[Cookie]) -> String:
+	var kvs: Array[String] = []
 	for i in cookies:
 		kvs.push_back("=".join([i.key, i.value]))
 
@@ -76,8 +76,8 @@ static func get_unix_time_from_rfc7231(from: String) -> int:
 		return 0
 
 	var dict := {}
-	for i in result.names:
-		dict[i] = result.strings[result.names[i]]
+	for k in result.names:
+		dict[k] = result.strings[result.names[k]]
 
 	var monthly := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 	var month_idx := monthly.find(dict["month"]) + 1
