@@ -1,4 +1,4 @@
-extends RefCounted
+class_name URL extends RefCounted
 
 var scheme := ""
 var host := ""
@@ -7,7 +7,7 @@ var path := ""
 
 
 # import from core/string/ustring.cpp: parse_url()
-func parse(url: String) -> int:
+static func parse(url: String) -> URL:
 	var base := url
 	var r_scheme := ""
 	var r_host := ""
@@ -36,14 +36,14 @@ func parse(url: String) -> int:
 		# Literal IPv6
 		pos = base.rfind("]")
 		if pos == -1:
-			return ERR_INVALID_PARAMETER
+			return null
 
 		r_host = base.substr(1, pos - 1)
 		base = base.substr(pos + 1, base.length() - pos - 1)
 	else:
 		# Anything else
 		if base.get_slice_count(":") > 2:
-			return ERR_INVALID_PARAMETER
+			return null
 
 		pos = base.rfind(":")
 		if pos == -1:
@@ -54,24 +54,25 @@ func parse(url: String) -> int:
 			base = base.substr(pos, base.length() - pos)
 
 	if r_host.is_empty():
-		return ERR_INVALID_PARAMETER
+		return null
 
 	r_host = r_host.to_lower()
 	# Port
 	if base.begins_with(":"):
 		base = base.substr(1, base.length() - 1)
 		if !base.is_valid_int():
-			return ERR_INVALID_PARAMETER
+			return null
 
 		r_port = base.to_int()
 		if r_port < 1 || r_port > 65535:
-			return ERR_INVALID_PARAMETER
+			return null
 
-	scheme = r_scheme
-	host = r_host
-	port = r_port
-	path = r_path
-	return OK
+	var new_url := URL.new()
+	new_url.scheme = r_scheme
+	new_url.host = r_host
+	new_url.port = r_port
+	new_url.path = r_path
+	return new_url
 
 
 func _to_string() -> String:

@@ -4,6 +4,7 @@ var key := ""
 var value := ""
 var expires := 0
 var domain := ""
+var include_subdomain := false
 var path := ""
 
 
@@ -11,11 +12,55 @@ func is_empty() -> bool:
 	return key.is_empty()
 
 
+func is_expired(now: int = 0) -> bool:
+	if not now:
+		now = Time.get_unix_time_from_system() as int
+
+	return expires <= now
+
+
+func _match_domain(url: URL) -> bool:
+	if url.host == domain:
+		return true
+
+	if include_subdomain and url.host.ends_with("." + domain):
+		return true
+
+	return false
+
+
+func _match_path(url: URL) -> bool:
+	# RFC 6265 5.1.4
+	if url.path == path:
+		return true
+
+	if url.path.begins_with(path) and path.ends_with("/"):
+		return true
+
+	if url.path.begins_with(path) and path.find("/") == url.path.length() + 1:
+		return true
+
+	return false
+
+
+func can_use_by(url: URL) -> bool:
+	if not _match_domain(url):
+		return false
+
+	if not _match_path(url):
+		return false
+
+	return true
+
+
 func _to_string() -> String:
 	return str([key, value, expires, domain, path])
 
 
 static func make_from_header(header: String, now: int = 0) -> Cookie:
+	if not now:
+		now = Time.get_unix_time_from_system() as int
+
 	var cookie := new()
 	var header_name := header.get_slice(":", 0).to_lower()
 	if header_name != "set-cookie":
@@ -40,22 +85,65 @@ static func make_from_header(header: String, now: int = 0) -> Cookie:
 			if max_age_time < 0 or str(max_age_time) != v:
 				max_age_time = 0
 
+		if k == "domain":
+			cookie.domain = v.trim_prefix(".").trim_suffix(".")
+			cookie.include_subdomain = true
+
+		if k == "path":
+			cookie.path = v
+
+		if k == "samesite":
+			# I'm very sorry! I didn't know the Public Suffix List!
+			return null
+
 	if expire_time:
 		cookie.expires = expire_time
 
 	if max_age_time:
-		var _now := now if now else (Time.get_unix_time_from_system() as int)
-		cookie.expires = _now + max_age_time
+		cookie.expires = now + max_age_time
 
 	return cookie
 
 
-static func make_from_response_headers(headers: PackedStringArray, now: int = 0) -> Array[Cookie]:
+static func make_from_response_headers(headers: PackedStringArray, request_url: URL, now: int = 0) -> Array[Cookie]:
+	if not now:
+		now = Time.get_unix_time_from_system() as int
+
 	var cookies: Array[Cookie] = []
 	for i in headers:
 		var cookie := make_from_header(i, now)
-		if not cookie.is_empty():
-			cookies.push_back(cookie)
+		if cookie.is_empty():
+			continue
+
+		if cookie.domain.is_empty():
+			cookie.domain = request_url.host
+
+		# RFC 6265 5.1.4
+		if cookie.path.is_empty():
+			# 1.
+			var uri_path := request_url.path.get_slice("?", 0)
+
+			# 2.
+			if uri_path.is_empty() or not uri_path.begins_with("/"):
+				cookie.path = "/"
+				cookies.push_back(cookie)
+				continue
+
+			# 3.
+			if not uri_path.contains("/"):
+				cookie.path = "/"
+				cookies.push_back(cookie)
+				continue
+
+			# 4.
+			if uri_path.length() >= 2:
+				cookie.path = uri_path.trim_suffix("/")
+				cookies.push_back(cookie)
+				continue
+
+			cookie.path = uri_path
+
+		cookies.push_back(cookie)
 
 	return cookies
 

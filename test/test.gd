@@ -1,6 +1,6 @@
 extends Control
 
-const URL := preload("res://url.gd")
+#const URL := preload("res://url.gd")
 const HTTP := preload("res://http.gd")
 const DebugUtils := preload("res://debugutils.gd")
 const Cookie := preload("res://cookie.gd")
@@ -12,6 +12,7 @@ var http: HTTP = null
 
 func _ready() -> void:
 	test_cookie()
+	test_path_contained_cookie()
 
 
 func _process(_delta: float) -> void:
@@ -30,12 +31,18 @@ func _process(_delta: float) -> void:
 
 func test_cookie() -> void:
 	const headers := ["Set-Cookie: a=A; HttpOnly", "Set-Cookie: bb=BB; HttpOnly"]
+	var example_url := URL.parse("https://example.com/")
+	var example_url_with_path := URL.parse("https://example.com/foobar")
+	var bad_url := URL.parse("https://example.org/")
 
-	var cookies := Cookie.make_from_response_headers(headers)
+	var cookies := Cookie.make_from_response_headers(headers, example_url)
 	assert(cookies[0].key == "a")
 	assert(cookies[0].value == "A")
 	assert(cookies[1].key == "bb")
 	assert(cookies[1].value == "BB")
+	assert(cookies[0].can_use_by(example_url))
+	assert(cookies[0].can_use_by(example_url_with_path))
+	assert(not cookies[0].can_use_by(bad_url))
 
 	var header := Cookie.make_string_from_cookies(cookies)
 	assert(header == "cookie: a=A; bb=BB")
@@ -56,17 +63,28 @@ func test_cookie() -> void:
 	var max_age_cookie_header := "Set-Cookie: foo=bar; Max-Age=100; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
 	var now := Time.get_unix_time_from_system() as int
 	var max_age_cookie := Cookie.make_from_header(max_age_cookie_header, now)
+	assert(not max_age_cookie.is_expired(now))
 	var max_age_result := max_age_cookie.expires - now
 	assert(max_age_result == 100)
 
 	print_debug("OK")
 
+
+func test_path_contained_cookie() -> void:
+	var url := URL.parse("https://example.com/efg/")
+	var header := "Set-Cookie: abc=def"
+	var cookie := Cookie.make_from_response_headers([header], url)
+	assert(cookie.size() == 1)
+	assert(cookie[0].path == "/efg")
+
+	print_debug("OK")
+
+
 func test_http() -> void:
 	http = HTTP.new()
 	const SAMPLE_URL := "https://httpbin.org/get"
-	var url := URL.new()
-	var err := url.parse(SAMPLE_URL)
-	assert(err == OK)
+	var url := URL.parse(SAMPLE_URL)
+	assert(url != null)
 	assert(url.to_string() == SAMPLE_URL)
 
 	var body: PackedByteArray = await http.request(url)

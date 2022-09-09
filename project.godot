@@ -13,9 +13,15 @@ _global_script_classes=[{
 "class": &"Cookie",
 "language": &"GDScript",
 "path": "res://cookie.gd"
+}, {
+"base": "RefCounted",
+"class": &"URL",
+"language": &"GDScript",
+"path": "res://url.gd"
 }]
 _global_script_class_icons={
-"Cookie": ""
+"Cookie": "",
+"URL": ""
 }
 
 [application]
