@@ -1,9 +1,6 @@
 extends Control
 
-#const URL := preload("res://url.gd")
-const HTTP := preload("res://http.gd")
 const DebugUtils := preload("res://debugutils.gd")
-const Cookie := preload("res://cookie.gd")
 
 var http: HTTP = null
 @onready var bodyLabel := %Body as Label

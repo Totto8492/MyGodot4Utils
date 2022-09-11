@@ -1,6 +1,4 @@
-extends RefCounted
-
-const URL := preload("res://url.gd")
+class_name HTTP extends RefCounted
 
 enum Method {
 	GET = HTTPClient.METHOD_GET,
