@@ -32,7 +32,7 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictiona
 		last_error = ERR_BUSY
 		return PackedByteArray()
 
-	if is_reconnect_needed(url, current_url):
+	if is_reconnect_needed(url):
 		http.close()
 
 	current_url = url
@@ -99,7 +99,7 @@ func is_busy() -> bool:
 	return true
 
 
-func is_reconnect_needed(a: URL, b: URL) -> bool:
+func is_reconnect_needed(a: URL, b: URL = current_url) -> bool:
 	return a.scheme != b.scheme || a.host != b.host || a.port != b.port
 
 
