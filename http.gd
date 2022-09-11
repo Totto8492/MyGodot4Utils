@@ -115,5 +115,14 @@ func get_response_headers() -> PackedStringArray:
 	return http.get_response_headers()
 
 
+func get_response_header_by_name(name: String) -> String:
+	var dic := http.get_response_headers_as_dictionary()
+	for k in dic.keys():
+		if (k as String).to_lower() == name:
+			return dic[k]
+
+	return ""
+
+
 func get_status() -> int:
 	return http.get_status()
