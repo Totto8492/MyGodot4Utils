@@ -12,6 +12,7 @@ var http := HTTPClient.new()
 var current_url := URL.new()
 var last_error := OK
 var canceling := false
+var last_response_headers: PackedStringArray = []
 
 signal do_poll
 
@@ -32,6 +33,7 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictiona
 		last_error = ERR_BUSY
 		return PackedByteArray()
 
+	last_response_headers = []
 	if is_reconnect_needed(url):
 		http.close()
 
@@ -79,6 +81,7 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictiona
 
 		rb.append_array(chunk)
 
+	last_response_headers = http.get_response_headers()
 	canceling = false
 	return rb
 
@@ -112,17 +115,26 @@ func get_response_code() -> int:
 
 
 func get_response_headers() -> PackedStringArray:
-	return http.get_response_headers()
+#	return http.get_response_headers()
+	# Workaround, HTTPClient's get_response_headers() clear headers...
+	return last_response_headers
 
 
 func get_response_header_by_name(name: String) -> String:
-	var dic := http.get_response_headers_as_dictionary()
-	for k in dic.keys():
-		if (k as String).to_lower() == name:
-			return dic[k]
+#	var dic := http.get_response_headers_as_dictionary()
+#	for k in dic.keys():
+#		if (k as String).to_lower() == name:
+#			return dic[k]
+#
+#	return ""
+	# Workaround, HTTPClient's get_response_headers() clear headers...
+	for i in last_response_headers:
+		var pos = i.find(":")
+		var key := i.substr(0, pos).strip_edges().to_lower()
+		if key == name.to_lower():
+			return i.substr(pos + 1).strip_edges()
 
 	return ""
-
 
 func get_status() -> int:
 	return http.get_status()
