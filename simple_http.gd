@@ -96,7 +96,20 @@ func request(url: String, max_redirections: int = MAX_REDIRECTIONS) -> Response:
 		append_cookies(new_cookies)
 		if res.code == 302:
 			var location := res.get_header_by_name("location")
-			current_url = URL.parse(location)
+			if location.is_empty():
+				break
+
+			if location.begins_with("http://") or location.begins_with("https://"):
+				current_url = URL.parse(location)
+				continue
+
+			if location.begins_with("/"):
+				current_url.path = location
+				continue
+
+			var pos := current_url.path.rfind("/")
+			var base := current_url.path.substr(0, pos + 1)
+			current_url.path = base + location
 			continue
 
 		return res
