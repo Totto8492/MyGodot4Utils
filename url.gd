@@ -1,4 +1,5 @@
-class_name URL extends RefCounted
+class_name URL
+extends RefCounted
 
 var scheme := ""
 var host := ""

@@ -1,4 +1,5 @@
-class_name HTTP extends RefCounted
+class_name HTTP
+extends RefCounted
 
 enum Method {
 	GET = HTTPClient.METHOD_GET,

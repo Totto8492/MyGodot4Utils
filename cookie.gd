@@ -1,4 +1,5 @@
-class_name Cookie extends RefCounted
+class_name Cookie
+extends RefCounted
 
 var key := ""
 var value := ""

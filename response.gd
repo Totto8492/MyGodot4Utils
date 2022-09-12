@@ -1,4 +1,5 @@
-class_name Response extends RefCounted
+class_name Response
+extends RefCounted
 
 var error: int = OK
 var code: int = 0
