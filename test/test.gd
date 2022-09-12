@@ -38,8 +38,11 @@ func test_cookie() -> void:
 	assert(cookies[0].can_use_by(example_url_with_path))
 	assert(not cookies[0].can_use_by(bad_url))
 
-	var header := Cookie.make_string_from_cookies(cookies)
+	var header := Cookie.get_string_from_cookies(cookies, example_url)
 	assert(header == "cookie: a=A; bb=BB")
+
+	var bad_header := Cookie.get_string_from_cookies(cookies, bad_url)
+	assert(bad_header.is_empty())
 
 	var datetime := Cookie.get_unix_time_from_rfc7231("Wed, 21 Oct 2015 07:28:00 GMT")
 	assert(datetime == 1445412480)
@@ -51,12 +54,12 @@ func test_cookie() -> void:
 	assert(not bad_time)
 
 	var expired_cookie_header := "Set-Cookie: foo=bar; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
-	var expired_cookie := Cookie.make_from_header(expired_cookie_header)
+	var expired_cookie := Cookie.from_header(expired_cookie_header)
 	assert(expired_cookie.expires == 1445412480)
 
 	var max_age_cookie_header := "Set-Cookie: foo=bar; Max-Age=100; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
 	var now := Time.get_unix_time_from_system() as int
-	var max_age_cookie := Cookie.make_from_header(max_age_cookie_header, now)
+	var max_age_cookie := Cookie.from_header(max_age_cookie_header, now)
 	assert(not max_age_cookie.is_expired(now))
 	var max_age_result := max_age_cookie.expires - now
 	assert(max_age_result == 100)

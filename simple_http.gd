@@ -6,7 +6,6 @@ const MAX_REDIRECTIONS := 5
 var connection_pool: Array[HTTP] = []
 var cookies: Array[Cookie] = []
 
-
 func _ready() -> void:
 	for i in MAX_CONNECTIONS:
 		connection_pool.push_back(HTTP.new())
@@ -75,7 +74,7 @@ func append_cookies(new_cookies: Array[Cookie]) -> void:
 	cookies.append_array(new_cookies)
 
 
-func request(url: String, max_redirections: int = MAX_REDIRECTIONS) -> Response:
+func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictionary = {}, custom_headers: PackedStringArray = PackedStringArray(), max_redirections: int = MAX_REDIRECTIONS) -> Response:
 	var current_url := URL.parse(url)
 
 	for i in max_redirections + 1:
@@ -84,8 +83,12 @@ func request(url: String, max_redirections: int = MAX_REDIRECTIONS) -> Response:
 			await get_tree().process_frame
 			http = get_client_from_pool(current_url)
 
-		var cookie_header := Cookie.make_string_from_cookies(cookies)
-		var res: Response = await http.request(current_url, HTTP.Method.GET, {}, [cookie_header])
+		var headers := custom_headers
+		var cookie_header := Cookie.get_string_from_cookies(cookies, current_url)
+		if not cookie_header.is_empty():
+			headers.append(cookie_header)
+
+		var res: Response = await http.request(current_url, method, query, headers)
 		if res.error:
 			return res
 

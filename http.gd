@@ -94,8 +94,8 @@ func is_busy() -> bool:
 	return true
 
 
-func is_reconnect_needed(a: URL, b: URL = current_url) -> bool:
-	return a.scheme != b.scheme || a.host != b.host || a.port != b.port
+func is_reconnect_needed(url: URL) -> bool:
+	return url.scheme != current_url.scheme || url.host != current_url.host || url.port != current_url.port
 
 
 func get_status() -> int:

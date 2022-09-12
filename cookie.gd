@@ -58,7 +58,7 @@ func _to_string() -> String:
 	return str([key, value, expires, domain, path])
 
 
-static func make_from_header(header: String, now: int = 0) -> Cookie:
+static func from_header(header: String, now: int = 0) -> Cookie:
 	if not now:
 		now = Time.get_unix_time_from_system() as int
 
@@ -112,7 +112,7 @@ static func array_from_response_headers(headers: PackedStringArray, request_url:
 
 	var cookies: Array[Cookie] = []
 	for i in headers:
-		var cookie := make_from_header(i, now)
+		var cookie := from_header(i, now)
 		if cookie.is_empty():
 			continue
 
@@ -149,10 +149,16 @@ static func array_from_response_headers(headers: PackedStringArray, request_url:
 	return cookies
 
 
-static func make_string_from_cookies(cookies: Array[Cookie]) -> String:
+static func get_string_from_cookies(cookies: Array[Cookie], url: URL) -> String:
 	var kvs: Array[String] = []
 	for i in cookies:
+		if not i.can_use_by(url):
+			continue
+
 		kvs.push_back("=".join([i.key, i.value]))
+
+	if kvs.is_empty():
+		return ""
 
 	return "cookie: " + "; ".join(kvs)
 
