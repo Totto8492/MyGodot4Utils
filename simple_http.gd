@@ -70,7 +70,7 @@ func append_cookies(new_cookies: Array[Cookie]) -> void:
 	cookies.append_array(new_cookies)
 
 
-func request(url: String, max_redirections: int = MAX_REDIRECTIONS) -> PackedByteArray:
+func request(url: String, max_redirections: int = MAX_REDIRECTIONS) -> Response:
 	var current_url := URL.parse(url)
 
 	for i in max_redirections + 1:
@@ -79,20 +79,21 @@ func request(url: String, max_redirections: int = MAX_REDIRECTIONS) -> PackedByt
 			await get_tree().process_frame
 			http = get_client_from_pool(current_url)
 
-		var res: PackedByteArray = await http.request(current_url)
-		var headers := http.get_response_headers()
-		var new_cookies := Cookie.make_from_response_headers(headers, current_url)
+		var cookie_header := Cookie.make_string_from_cookies(cookies)
+		var res: Response = await http.request(current_url, HTTP.Method.GET, {}, [cookie_header])
+		if res.error:
+			return res
 
+		var new_cookies := Cookie.make_from_response_headers(res.headers, current_url)
 		for c in new_cookies:
 			remove_cookie(c.key, current_url)
 
 		append_cookies(new_cookies)
-		if http.get_response_code() == 302:
-			var location := http.get_response_header_by_name("location")
+		if res.code == 302:
+			var location := res.get_response_header_by_name("location")
 			current_url = URL.parse(location)
 			continue
 
-
 		return res
 
-	return PackedByteArray()
+	return HTTP.Response.new(ERR_CONNECTION_ERROR)

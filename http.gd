@@ -10,9 +10,7 @@ enum Method {
 
 var http := HTTPClient.new()
 var current_url := URL.new()
-var last_error := OK
 var canceling := false
-var last_response_headers: PackedStringArray = []
 
 signal do_poll
 
@@ -26,14 +24,10 @@ func poll() -> int:
 	return err
 
 
-func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictionary(), body: PackedStringArray = PackedStringArray()) -> PackedByteArray:
-	last_error = OK
-
+func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
 	if is_busy():
-		last_error = ERR_BUSY
-		return PackedByteArray()
+		return Response.new(ERR_BUSY)
 
-	last_response_headers = []
 	if is_reconnect_needed(url):
 		http.close()
 
@@ -41,32 +35,30 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictiona
 	var err := OK
 	err = http.connect_to_host(url.host, url.port, url.scheme == "https://")
 	if err:
-		last_error = err
-		return PackedByteArray()
+		return Response.new(err)
 
 	while http.get_status() == HTTPClient.STATUS_CONNECTING or http.get_status() == HTTPClient.STATUS_RESOLVING:
 		await do_poll
 		if canceling:
 			canceling = false
-			return PackedByteArray()
+			return Response.new()
 
 	var path_query := http.query_string_from_dict(query)
 	if not path_query.is_empty():
 		path_query = "?" + path_query
 
-	err = http.request(method, url.path + path_query, body)
+	err = http.request(method, url.path + path_query, headers, body)
 	if err:
-		last_error = err
-		return PackedByteArray()
+		return Response.new(err)
 
 	while http.get_status() == HTTPClient.STATUS_REQUESTING:
 		await do_poll
 		if canceling:
 			canceling = false
-			return PackedByteArray()
+			return Response.new()
 
 	if not http.has_response():
-		return PackedByteArray()
+		return Response.new()
 
 	var rb := PackedByteArray()
 	while http.get_status() == HTTPClient.STATUS_BODY:
@@ -81,9 +73,8 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = Dictiona
 
 		rb.append_array(chunk)
 
-	last_response_headers = http.get_response_headers()
 	canceling = false
-	return rb
+	return Response.new(OK, http.get_response_code(), http.get_response_headers(), rb)
 
 
 func cancel() -> void:
@@ -105,36 +96,6 @@ func is_busy() -> bool:
 func is_reconnect_needed(a: URL, b: URL = current_url) -> bool:
 	return a.scheme != b.scheme || a.host != b.host || a.port != b.port
 
-
-func has_error() -> bool:
-	return last_error != OK
-
-
-func get_response_code() -> int:
-	return http.get_response_code()
-
-
-func get_response_headers() -> PackedStringArray:
-#	return http.get_response_headers()
-	# Workaround, HTTPClient's get_response_headers() clear headers...
-	return last_response_headers
-
-
-func get_response_header_by_name(name: String) -> String:
-#	var dic := http.get_response_headers_as_dictionary()
-#	for k in dic.keys():
-#		if (k as String).to_lower() == name:
-#			return dic[k]
-#
-#	return ""
-	# Workaround, HTTPClient's get_response_headers() clear headers...
-	for i in last_response_headers:
-		var pos = i.find(":")
-		var key := i.substr(0, pos).strip_edges().to_lower()
-		if key == name.to_lower():
-			return i.substr(pos + 1).strip_edges()
-
-	return ""
 
 func get_status() -> int:
 	return http.get_status()
