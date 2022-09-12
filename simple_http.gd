@@ -5,6 +5,7 @@ const MAX_CONNECTIONS_SAMESITE := 6
 const MAX_REDIRECTIONS := 5
 var connection_pool: Array[HTTP] = []
 var cookies: Array[Cookie] = []
+var user_agent := ""
 
 func _ready() -> void:
 	for i in MAX_CONNECTIONS:
@@ -87,6 +88,9 @@ func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictiona
 		var cookie_header := Cookie.get_string_from_cookies(cookies, current_url)
 		if not cookie_header.is_empty():
 			headers.append(cookie_header)
+
+		if not user_agent.is_empty():
+			headers.append("User-Agent: " + user_agent)
 
 		var res: Response = await http.request(current_url, method, query, headers)
 		if res.error:
