@@ -105,7 +105,7 @@ static func make_from_header(header: String, now: int = 0) -> Cookie:
 	return cookie
 
 
-static func make_from_response_headers(headers: PackedStringArray, request_url: URL, now: int = 0) -> Array[Cookie]:
+static func array_from_response_headers(headers: PackedStringArray, request_url: URL, now: int = 0) -> Array[Cookie]:
 	if not now:
 		now = Time.get_unix_time_from_system() as int
 

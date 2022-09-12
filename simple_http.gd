@@ -84,13 +84,13 @@ func request(url: String, max_redirections: int = MAX_REDIRECTIONS) -> Response:
 		if res.error:
 			return res
 
-		var new_cookies := Cookie.make_from_response_headers(res.headers, current_url)
+		var new_cookies := Cookie.array_from_response_headers(res.headers, current_url)
 		for c in new_cookies:
 			remove_cookie(c.key, current_url)
 
 		append_cookies(new_cookies)
 		if res.code == 302:
-			var location := res.get_response_header_by_name("location")
+			var location := res.get_header_by_name("location")
 			current_url = URL.parse(location)
 			continue
 
