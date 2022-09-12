@@ -96,4 +96,4 @@ func request(url: String, max_redirections: int = MAX_REDIRECTIONS) -> Response:
 
 		return res
 
-	return HTTP.Response.new(ERR_CONNECTION_ERROR)
+	return Response.new(ERR_CONNECTION_ERROR)
