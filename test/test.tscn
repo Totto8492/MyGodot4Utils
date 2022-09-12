@@ -53,12 +53,24 @@ size_flags_vertical = 1
 [node name="HTTPTest" type="Button" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 offset_left = 513.0
-offset_top = 554.0
+offset_top = 261.0
 offset_right = 598.0
-offset_bottom = 608.0
+offset_bottom = 315.0
 size_flags_horizontal = 4
 size_flags_vertical = 10
 text = "Start
 HTTP Test"
 
+[node name="HTTPAndCookieTest" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+offset_left = 468.0
+offset_top = 554.0
+offset_right = 643.0
+offset_bottom = 608.0
+size_flags_horizontal = 4
+size_flags_vertical = 10
+text = "Start
+HTTP and Cookie Test"
+
 [connection signal="pressed" from="MarginContainer/VBoxContainer/HTTPTest" to="." method="_on_http_test_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/HTTPAndCookieTest" to="." method="_on_http_and_cookie_test_pressed"]

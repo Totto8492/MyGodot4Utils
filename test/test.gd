@@ -1,10 +1,8 @@
 extends Control
 
-const DebugUtils := preload("res://debugutils.gd")
-
 var http: HTTP = null
-@onready var bodyLabel := %Body as Label
-@onready var statusLabel := %Status as Label
+@onready var body_label := %Body as Label
+@onready var status_label := %Status as Label
 
 
 func _ready() -> void:
@@ -18,11 +16,10 @@ func _process(_delta: float) -> void:
 
 	var debug := DebugUtils.new()
 	var busy := http.is_busy()
-	var error := http.last_error
 	var status := debug.get_enum_key("HTTPClient", "Status", http.get_status())
-	var text := "busy: %s\nerror: %s\nstatus: %s" % [busy, error, status]
+	var text := "busy: %s\nstatus: %s" % [busy, status]
 
-	statusLabel.text = text
+	status_label.text = text
 	http.poll()
 
 
@@ -32,7 +29,7 @@ func test_cookie() -> void:
 	var example_url_with_path := URL.parse("https://example.com/foobar")
 	var bad_url := URL.parse("https://example.org/")
 
-	var cookies := Cookie.make_from_response_headers(headers, example_url)
+	var cookies := Cookie.array_from_response_headers(headers, example_url)
 	assert(cookies[0].key == "a")
 	assert(cookies[0].value == "A")
 	assert(cookies[1].key == "bb")
@@ -70,7 +67,7 @@ func test_cookie() -> void:
 func test_path_contained_cookie() -> void:
 	var url := URL.parse("https://example.com/efg/")
 	var header := "Set-Cookie: abc=def"
-	var cookie := Cookie.make_from_response_headers([header], url)
+	var cookie := Cookie.array_from_response_headers([header], url)
 	assert(cookie.size() == 1)
 	assert(cookie[0].path == "/efg")
 
@@ -84,12 +81,34 @@ func test_http() -> void:
 	assert(url != null)
 	assert(url.to_string() == SAMPLE_URL)
 
-	var body: PackedByteArray = await http.request(url)
-	bodyLabel.text = body.get_string_from_utf8()
+	var res: Response = await http.request(url)
+	body_label.text = res.body.get_string_from_utf8()
 
-	assert(http.get_response_code() == 200)
+	assert(res.code == 200)
+	print_debug("OK")
+
+
+func test_http_and_cookie() -> void:
+	const SAMPLE_URL := "https://httpbin.org/cookies/set?freeform=foo"
+	var simple_http := preload("res://simple_http.tscn").instantiate()
+	add_child(simple_http)
+
+	var res: Response = await simple_http.request(SAMPLE_URL)
+	body_label.text = res.body.get_string_from_utf8()
+
+	simple_http.queue_free()
+
+	var freeform_cookie: Cookie = simple_http.get_cookie("freeform", URL.parse(SAMPLE_URL))
+
+	assert(freeform_cookie)
+	assert(freeform_cookie.value == "foo")
+	assert(res.code == 200)
 	print_debug("OK")
 
 
 func _on_http_test_pressed() -> void:
 	test_http()
+
+
+func _on_http_and_cookie_test_pressed() -> void:
+	test_http_and_cookie()
