@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://xx4icvyjgbra"]
+[gd_scene load_steps=2 format=3 uid="uid://covhyc1fbii0s"]
 
 [ext_resource type="Script" path="res://test/test.gd" id="1_eg4lq"]
 
@@ -50,27 +50,29 @@ offset_right = 6.0
 offset_bottom = 23.0
 size_flags_vertical = 1
 
-[node name="HTTPTest" type="Button" parent="MarginContainer/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-offset_left = 513.0
-offset_top = 261.0
-offset_right = 598.0
-offset_bottom = 315.0
-size_flags_horizontal = 4
+offset_top = 554.0
+offset_right = 1112.0
+offset_bottom = 608.0
 size_flags_vertical = 10
+alignment = 1
+
+[node name="HTTPTest" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+offset_left = 424.0
+offset_right = 509.0
+offset_bottom = 54.0
 text = "Start
 HTTP Test"
 
-[node name="HTTPAndCookieTest" type="Button" parent="MarginContainer/VBoxContainer"]
+[node name="HTTPAndCookieTest" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
-offset_left = 468.0
-offset_top = 554.0
-offset_right = 643.0
-offset_bottom = 608.0
-size_flags_horizontal = 4
-size_flags_vertical = 10
+offset_left = 513.0
+offset_right = 688.0
+offset_bottom = 54.0
 text = "Start
 HTTP and Cookie Test"
 
-[connection signal="pressed" from="MarginContainer/VBoxContainer/HTTPTest" to="." method="_on_http_test_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/HTTPAndCookieTest" to="." method="_on_http_and_cookie_test_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/HBoxContainer2/HTTPTest" to="." method="_on_http_test_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/HBoxContainer2/HTTPAndCookieTest" to="." method="_on_http_and_cookie_test_pressed"]

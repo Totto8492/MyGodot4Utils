@@ -1,9 +1,10 @@
 class_name Cookie
 extends RefCounted
 
+const EXPIRE_SESSION = -1
 var key := ""
 var value := ""
-var expires := 0
+var expires := EXPIRE_SESSION
 var domain := ""
 var include_subdomain := false
 var path := ""
@@ -13,11 +14,14 @@ func is_empty() -> bool:
 	return key.is_empty()
 
 
-func is_expired(now: int = 0) -> bool:
-	if not now:
-		now = Time.get_unix_time_from_system() as int
+func is_expired_at(time: int) -> bool:
+	assert(time)
+	return expires != EXPIRE_SESSION and expires <= time
 
-	return expires <= now
+
+func is_expired() -> bool:
+	var now := Time.get_unix_time_from_system() as int
+	return expires != EXPIRE_SESSION and expires <= now
 
 
 func _match_domain(url: URL) -> bool:
@@ -58,10 +62,7 @@ func _to_string() -> String:
 	return str([key, value, expires, domain, path])
 
 
-static func from_header(header: String, now: int = 0) -> Cookie:
-	if not now:
-		now = Time.get_unix_time_from_system() as int
-
+static func from_header(header: String, time: int) -> Cookie:
 	var cookie := new()
 	var header_name := header.get_slice(":", 0).to_lower()
 	if header_name != "set-cookie":
@@ -73,18 +74,23 @@ static func from_header(header: String, now: int = 0) -> Cookie:
 	cookie.key = kv[0]
 	cookie.value = kv[1]
 	args.remove_at(0)
-	var expire_time := 0
 	var max_age_time := 0
 	for i in args:
 		var k := i.get_slice("=", 0).to_lower()
 		var v := i.get_slice("=", 1)
 		if k == "expires":
-			expire_time = get_unix_time_from_rfc7231(v)
+			if cookie.expires != EXPIRE_SESSION:
+				continue
+
+			var expire_time := get_unix_time_from_rfc7231(v)
+			cookie.expires = expire_time
 
 		if k == "max-age":
 			max_age_time = v.to_int()
 			if max_age_time < 0 or str(max_age_time) != v:
-				max_age_time = 0
+				return null
+
+			cookie.expires = time + max_age_time
 
 		if k == "domain":
 			cookie.domain = v.trim_prefix(".").trim_suffix(".")
@@ -97,22 +103,13 @@ static func from_header(header: String, now: int = 0) -> Cookie:
 			# I'm very sorry! I didn't know the Public Suffix List!
 			return null
 
-	if expire_time:
-		cookie.expires = expire_time
-
-	if max_age_time:
-		cookie.expires = now + max_age_time
-
 	return cookie
 
 
-static func array_from_response_headers(headers: PackedStringArray, request_url: URL, now: int = 0) -> Array[Cookie]:
-	if not now:
-		now = Time.get_unix_time_from_system() as int
-
+static func array_from_response_headers(headers: PackedStringArray, request_url: URL, time: int) -> Array[Cookie]:
 	var cookies: Array[Cookie] = []
 	for i in headers:
-		var cookie := from_header(i, now)
+		var cookie := from_header(i, time)
 		if cookie.is_empty():
 			continue
 

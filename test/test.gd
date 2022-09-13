@@ -1,16 +1,26 @@
 extends Control
 
+var SimpleHTTP := preload("res://simple_http.gd")
+@onready var simple_http := SimpleHTTP.new()
 var http: HTTP = null
 @onready var body_label := %Body as Label
 @onready var status_label := %Status as Label
+var last_status := ""
 
 
 func _ready() -> void:
 	test_cookie()
 	test_path_contained_cookie()
+	add_child(simple_http)
 
 
 func _process(_delta: float) -> void:
+	var debug_info := simple_http.get_debug_info()
+	status_label.text = "\n".join(debug_info)
+#	if not debug_info.is_empty() and debug_info[0] != last_status:
+#		last_status = debug_info[0]
+#		print(last_status)
+
 	if not http:
 		return
 
@@ -28,8 +38,8 @@ func test_cookie() -> void:
 	var example_url := URL.parse("https://example.com/")
 	var example_url_with_path := URL.parse("https://example.com/foobar")
 	var bad_url := URL.parse("https://example.org/")
-
-	var cookies := Cookie.array_from_response_headers(headers, example_url)
+	var time := Time.get_unix_time_from_system() as int
+	var cookies := Cookie.array_from_response_headers(headers, example_url, time)
 	assert(cookies[0].key == "a")
 	assert(cookies[0].value == "A")
 	assert(cookies[1].key == "bb")
@@ -54,13 +64,13 @@ func test_cookie() -> void:
 	assert(not bad_time)
 
 	var expired_cookie_header := "Set-Cookie: foo=bar; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
-	var expired_cookie := Cookie.from_header(expired_cookie_header)
+	var expired_cookie := Cookie.from_header(expired_cookie_header, time)
 	assert(expired_cookie.expires == 1445412480)
 
 	var max_age_cookie_header := "Set-Cookie: foo=bar; Max-Age=100; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
 	var now := Time.get_unix_time_from_system() as int
 	var max_age_cookie := Cookie.from_header(max_age_cookie_header, now)
-	assert(not max_age_cookie.is_expired(now))
+	assert(not max_age_cookie.is_expired_at(now))
 	var max_age_result := max_age_cookie.expires - now
 	assert(max_age_result == 100)
 
@@ -70,7 +80,8 @@ func test_cookie() -> void:
 func test_path_contained_cookie() -> void:
 	var url := URL.parse("https://example.com/efg/")
 	var header := "Set-Cookie: abc=def"
-	var cookie := Cookie.array_from_response_headers([header], url)
+	var time := Time.get_unix_time_from_system() as int
+	var cookie := Cookie.array_from_response_headers([header], url, time)
 	assert(cookie.size() == 1)
 	assert(cookie[0].path == "/efg")
 
@@ -85,24 +96,18 @@ func test_http() -> void:
 	assert(url.to_string() == SAMPLE_URL)
 
 	var res: Response = await http.request(url)
-	body_label.text = res.body.get_string_from_utf8()
 
+	body_label.text = res.body.get_string_from_utf8()
 	assert(res.code == 200)
 	print_debug("OK")
 
 
 func test_http_and_cookie() -> void:
 	const SAMPLE_URL := "https://httpbin.org/cookies/set?freeform=foo"
-	var simple_http := preload("res://simple_http.tscn").instantiate()
-	add_child(simple_http)
-
 	var res: Response = await simple_http.request(SAMPLE_URL)
-	body_label.text = res.body.get_string_from_utf8()
-
-	simple_http.queue_free()
-
 	var freeform_cookie: Cookie = simple_http.get_cookie("freeform", URL.parse(SAMPLE_URL))
 
+	body_label.text = res.body.get_string_from_utf8()
 	assert(freeform_cookie)
 	assert(freeform_cookie.value == "foo")
 	assert(res.code == 200)

@@ -62,6 +62,7 @@ func get_cookie(key: String, url: URL) -> Cookie:
 
 	return null
 
+
 func remove_cookie(key: String, url: URL) -> bool:
 	for i in cookies.size():
 		if cookies[i].key == key and cookies[i].can_use_by(url):
@@ -75,6 +76,12 @@ func append_cookies(new_cookies: Array[Cookie]) -> void:
 	cookies.append_array(new_cookies)
 
 
+func strip_expired_cookies(time: int) -> void:
+	var new_cookies: Array[Cookie] = []
+	new_cookies = cookies.filter(func(i: Cookie): return not i.is_expired_at(time))
+	cookies = new_cookies
+
+
 func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictionary = {}, custom_headers: PackedStringArray = PackedStringArray(), max_redirections: int = MAX_REDIRECTIONS) -> Response:
 	var current_url := URL.parse(url)
 
@@ -83,6 +90,9 @@ func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictiona
 		while not http:
 			await get_tree().process_frame
 			http = get_client_from_pool(current_url)
+
+		var time := Time.get_unix_time_from_system() as int
+		strip_expired_cookies(time)
 
 		var headers := custom_headers
 		var cookie_header := Cookie.get_string_from_cookies(cookies, current_url)
@@ -96,7 +106,7 @@ func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictiona
 		if res.error:
 			return res
 
-		var new_cookies := Cookie.array_from_response_headers(res.headers, current_url)
+		var new_cookies := Cookie.array_from_response_headers(res.headers, current_url, time)
 		for c in new_cookies:
 			remove_cookie(c.key, current_url)
 
