@@ -29,15 +29,15 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 	if is_busy():
 		return Response.new(ERR_BUSY)
 
+	var err := OK
 	if is_reconnect_needed(url):
+		current_url = url
 		http.close()
+		err = http.connect_to_host(url.host, url.port, url.scheme == "https://")
+		if err:
+			return Response.new(err)
 
 	current_url = url
-	var err := OK
-	err = http.connect_to_host(url.host, url.port, url.scheme == "https://")
-	if err:
-		return Response.new(err)
-
 	while http.get_status() == HTTPClient.STATUS_CONNECTING or http.get_status() == HTTPClient.STATUS_RESOLVING:
 		await do_poll
 		if canceling:
@@ -95,6 +95,9 @@ func is_busy() -> bool:
 
 
 func is_reconnect_needed(url: URL) -> bool:
+	if http.get_status() == HTTPClient.STATUS_DISCONNECTED:
+		return true
+
 	return url.scheme != current_url.scheme || url.host != current_url.host || url.port != current_url.port
 
 

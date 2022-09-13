@@ -68,6 +68,11 @@ static func parse(url: String) -> URL:
 		if r_port < 1 || r_port > 65535:
 			return null
 
+	if r_port == -1:
+		match r_scheme:
+			"http://": r_port = 80
+			"https://": r_port = 443
+
 	var new_url := URL.new()
 	new_url.scheme = r_scheme
 	new_url.host = r_host

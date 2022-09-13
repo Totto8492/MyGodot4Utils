@@ -7,10 +7,6 @@ var connection_pool: Array[HTTP] = []
 var cookies: Array[Cookie] = []
 var user_agent := ""
 
-func _ready() -> void:
-	for i in MAX_CONNECTIONS:
-		connection_pool.push_back(HTTP.new())
-
 
 func _process(_delta: float) -> void:
 	for i in connection_pool:
@@ -24,7 +20,7 @@ func get_client_from_pool(url: URL) -> HTTP:
 		if i.is_busy() and not i.is_reconnect_needed(url):
 			samesite += 1
 
-	if samesite > MAX_CONNECTIONS_SAMESITE:
+	if samesite >= MAX_CONNECTIONS_SAMESITE:
 		return null
 
 	for i in connection_pool:
@@ -34,6 +30,11 @@ func get_client_from_pool(url: URL) -> HTTP:
 	for i in connection_pool:
 		if not i.is_busy():
 			return i
+
+	if connection_pool.size() < MAX_CONNECTIONS:
+		var new_connection := HTTP.new()
+		connection_pool.push_back(new_connection)
+		return new_connection
 
 	return null
 
