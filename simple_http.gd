@@ -83,6 +83,34 @@ func strip_expired_cookies(time: int) -> void:
 	cookies = new_cookies
 
 
+func save_cookies(path: String, include_session_cookies: bool = false) -> int:
+	var file := File.new()
+	var err := file.open(path, File.WRITE_READ)
+	if err:
+		return err
+
+	if include_session_cookies:
+		file.store_string(var_to_str(cookies))
+	else:
+		var f := func(c: Cookie): return c.expires != Cookie.EXPIRE_SESSION
+		var filtered_cookies := cookies.filter(f)
+		file.store_string(var_to_str(filtered_cookies))
+
+	file.close()
+	return OK
+
+
+func load_cookies(path: String) -> int:
+	var file := File.new()
+	var err := file.open(path, File.READ)
+	if err:
+		return err
+
+	cookies = str_to_var(file.get_as_text())
+	file.close()
+	return OK
+
+
 func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictionary = {}, custom_headers: PackedStringArray = PackedStringArray(), max_redirections: int = MAX_REDIRECTIONS) -> Response:
 	var current_url := URL.parse(url)
 
