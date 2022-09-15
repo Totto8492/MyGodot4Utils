@@ -82,7 +82,7 @@ static func parse(url: String) -> URL:
 
 
 func _to_string() -> String:
-	if port < 1 || port > 65535:
+	if (scheme == "http://" and port == 80) or (scheme == "https://" and port == 443):
 		return "%s%s%s" % [scheme, host, path]
 
 	return "%s%s:%s%s%s" % [scheme, host, port, path]

@@ -59,7 +59,7 @@ func can_use_by(url: URL) -> bool:
 
 
 func _to_string() -> String:
-	return str([key, value, expires, domain, path])
+	return str([key, value, expires, domain, include_subdomain, path])
 
 
 static func from_header(header: String, time: int) -> Cookie:
