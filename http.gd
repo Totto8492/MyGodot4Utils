@@ -12,6 +12,7 @@ enum Method {
 var http := HTTPClient.new()
 var current_url := URL.new()
 var canceling := false
+var cycle := 0
 
 signal do_poll
 
@@ -31,11 +32,15 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 
 	var err := OK
 	if is_reconnect_needed(url):
+		cycle = 0
 		current_url = url
 		http.close()
+		http = HTTPClient.new()
 		err = http.connect_to_host(url.host, url.port, url.scheme == "https://")
 		if err:
 			return Response.new(err)
+	else:
+		cycle += 1
 
 	current_url = url
 	while http.get_status() == HTTPClient.STATUS_CONNECTING or http.get_status() == HTTPClient.STATUS_RESOLVING:
@@ -80,7 +85,10 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 
 func cancel() -> void:
 	canceling = true
+	cycle = 0
+	current_url = URL.new()
 	http.close()
+	http = HTTPClient.new()
 	emit_signal("do_poll")
 
 

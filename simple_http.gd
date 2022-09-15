@@ -10,8 +10,20 @@ var user_agent := ""
 
 func _process(_delta: float) -> void:
 	for i in connection_pool:
-		if i:
-			i.poll()
+		if not i:
+			continue
+
+		match i.get_status():
+			HTTPClient.STATUS_CANT_RESOLVE: i.cancel()
+			HTTPClient.STATUS_CANT_CONNECT: i.cancel()
+			HTTPClient.STATUS_CONNECTION_ERROR: i.cancel()
+			HTTPClient.STATUS_TLS_HANDSHAKE_ERROR:i.cancel()
+
+		i.poll()
+
+	var f := func(http: HTTP): return http.get_status() != HTTPClient.STATUS_DISCONNECTED
+	var new_pool := connection_pool.filter(f)
+	connection_pool = new_pool
 
 
 func get_client_from_pool(url: URL) -> HTTP:
@@ -43,7 +55,7 @@ func get_debug_info() -> PackedStringArray:
 	var s: PackedStringArray = PackedStringArray()
 	for i in connection_pool:
 		var status := DebugUtils.get_enum_key("HTTPClient", "Status", i.get_status())
-		s.append(i.current_url.host + ": " + str(status))
+		s.append(i.current_url.host + ": " + str(status) + " (" + str(i.cycle) + ")")
 
 	return s
 
