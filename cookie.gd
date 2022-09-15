@@ -58,6 +58,10 @@ func can_use_by(url: URL) -> bool:
 	return true
 
 
+func _to_string() -> String:
+	return str([key, value, expires, domain, path])
+
+
 static func from_header(header: String, time: int) -> Cookie:
 	var cookie := new()
 	var header_name := header.get_slice(":", 0).to_lower()

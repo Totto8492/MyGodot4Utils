@@ -80,3 +80,9 @@ static func parse(url: String) -> URL:
 	new_url.path = r_path
 	return new_url
 
+
+func _to_string() -> String:
+	if port < 1 || port > 65535:
+		return "%s%s%s" % [scheme, host, path]
+
+	return "%s%s:%s%s%s" % [scheme, host, port, path]
