@@ -85,7 +85,7 @@ func strip_expired_cookies(time: int) -> void:
 
 func save_cookies(path: String, include_session_cookies: bool = false) -> int:
 	var file := File.new()
-	var err := file.open(path, File.WRITE_READ)
+	var err := file.open(path, File.WRITE)
 	if err:
 		return err
 
