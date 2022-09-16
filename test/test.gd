@@ -17,9 +17,6 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	var debug_info := simple_http.get_debug_info()
 	status_label.text = "\n".join(debug_info)
-#	if not debug_info.is_empty() and debug_info[0] != last_status:
-#		last_status = debug_info[0]
-#		print(last_status)
 
 	if not http:
 		return
