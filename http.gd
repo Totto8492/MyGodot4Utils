@@ -13,6 +13,7 @@ var http := HTTPClient.new()
 var current_url := URL.new()
 var canceling := false
 var cycle := 0
+var busy := false
 
 signal do_poll
 
@@ -30,6 +31,7 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 	if is_busy():
 		return Response.new(ERR_BUSY)
 
+	busy = true
 	var err := OK
 	if is_reconnect_needed(url):
 		cycle = 0
@@ -37,6 +39,7 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 		http.close()
 		err = http.connect_to_host(url.host, url.port, url.scheme == "https://")
 		if err:
+			busy = false
 			return Response.new(err)
 	else:
 		cycle += 1
@@ -46,6 +49,7 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 		await do_poll
 		if canceling:
 			canceling = false
+			busy = false
 			return Response.new()
 
 	var path_query := http.query_string_from_dict(query)
@@ -54,12 +58,14 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 
 	err = http.request(method, url.path + path_query, headers, body)
 	if err:
+		busy = false
 		return Response.new(err)
 
 	while http.get_status() == HTTPClient.STATUS_REQUESTING:
 		await do_poll
 		if canceling:
 			canceling = false
+			busy = false
 			return Response.new()
 
 	if not http.has_response():
@@ -79,25 +85,22 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 		rb.append_array(chunk)
 
 	canceling = false
+	busy = false
 	return Response.new(OK, http.get_response_code(), http.get_response_headers(), rb)
 
 
 func cancel() -> void:
-	canceling = true
+	if busy:
+		canceling = true
+		emit_signal("do_poll")
+
 	cycle = 0
 	current_url = URL.new()
 	http.close()
-	emit_signal("do_poll")
 
 
 func is_busy() -> bool:
-	match http.get_status():
-		HTTPClient.STATUS_DISCONNECTED:
-			return false
-		HTTPClient.STATUS_CONNECTED:
-			return false
-
-	return true
+	return busy
 
 
 func is_reconnect_needed(url: URL) -> bool:
