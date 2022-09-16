@@ -9,22 +9,22 @@ var user_agent := ""
 
 
 func _process(_delta: float) -> void:
-	var f := func(http: HTTP):
+	var check_gabaged := func(http: HTTP):
 		match http.get_status():
-			HTTPClient.STATUS_DISCONNECTED: return false
-			HTTPClient.STATUS_CANT_RESOLVE: return false
-			HTTPClient.STATUS_CANT_CONNECT: return false
-			HTTPClient.STATUS_CONNECTION_ERROR: return false
-			HTTPClient.STATUS_TLS_HANDSHAKE_ERROR: return false
-			_: return true
+			HTTPClient.STATUS_DISCONNECTED: pass
+			HTTPClient.STATUS_CANT_RESOLVE: pass
+			HTTPClient.STATUS_CANT_CONNECT: pass
+			HTTPClient.STATUS_CONNECTION_ERROR: pass
+			HTTPClient.STATUS_TLS_HANDSHAKE_ERROR: pass
+			_: return false
 
-	var new_pool := connection_pool.filter(f)
-	connection_pool = new_pool
+		return true
+
+	var gabaged_connections := connection_pool.filter(check_gabaged)
+	for i in gabaged_connections:
+		i.cancel()
 
 	for i in connection_pool:
-		if not i:
-			continue
-
 		i.poll()
 
 
