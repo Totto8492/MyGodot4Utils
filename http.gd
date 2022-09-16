@@ -35,7 +35,6 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 		cycle = 0
 		current_url = url
 		http.close()
-		http = HTTPClient.new()
 		err = http.connect_to_host(url.host, url.port, url.scheme == "https://")
 		if err:
 			return Response.new(err)
@@ -88,7 +87,6 @@ func cancel() -> void:
 	cycle = 0
 	current_url = URL.new()
 	http.close()
-	http = HTTPClient.new()
 	emit_signal("do_poll")
 
 

@@ -9,21 +9,23 @@ var user_agent := ""
 
 
 func _process(_delta: float) -> void:
+	var f := func(http: HTTP):
+		match http.get_status():
+			HTTPClient.STATUS_DISCONNECTED: return false
+			HTTPClient.STATUS_CANT_RESOLVE: return false
+			HTTPClient.STATUS_CANT_CONNECT: return false
+			HTTPClient.STATUS_CONNECTION_ERROR: return false
+			HTTPClient.STATUS_TLS_HANDSHAKE_ERROR: return false
+			_: return true
+
+	var new_pool := connection_pool.filter(f)
+	connection_pool = new_pool
+
 	for i in connection_pool:
 		if not i:
 			continue
 
-		match i.get_status():
-			HTTPClient.STATUS_CANT_RESOLVE: i.cancel()
-			HTTPClient.STATUS_CANT_CONNECT: i.cancel()
-			HTTPClient.STATUS_CONNECTION_ERROR: i.cancel()
-			HTTPClient.STATUS_TLS_HANDSHAKE_ERROR:i.cancel()
-
 		i.poll()
-
-	var f := func(http: HTTP): return http.get_status() != HTTPClient.STATUS_DISCONNECTED
-	var new_pool := connection_pool.filter(f)
-	connection_pool = new_pool
 
 
 func get_client_from_pool(url: URL) -> HTTP:
