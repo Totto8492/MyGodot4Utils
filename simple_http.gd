@@ -126,6 +126,10 @@ func load_cookies(path: String) -> int:
 
 
 func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictionary = {}, custom_headers: PackedStringArray = PackedStringArray(), max_redirections: int = MAX_REDIRECTIONS) -> Response:
+	return await request_and_save_to_file("", url, method, query, custom_headers, max_redirections)
+
+
+func request_and_save_to_file(file_path: String, url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictionary = {}, custom_headers: PackedStringArray = PackedStringArray(), max_redirections: int = MAX_REDIRECTIONS) -> Response:
 	var current_url := URL.parse(url)
 
 	for i in max_redirections + 1:
@@ -145,7 +149,12 @@ func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictiona
 		if not user_agent.is_empty():
 			headers.append("User-Agent: " + user_agent)
 
-		var res: Response = await http.request(current_url, method, query, headers)
+		var res: Response
+		if file_path.is_empty():
+			res = await http.request(current_url, method, query, headers)
+		else:
+			res = await http.request_and_save_to_file(file_path, current_url, method, query, headers)
+
 		if res.error:
 			return res
 

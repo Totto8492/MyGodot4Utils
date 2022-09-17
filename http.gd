@@ -95,6 +95,20 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 	return res
 
 
+func request_and_save_to_file(file_path: String, url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
+	var file := File.new()
+	var err := file.open(file_path, File.WRITE)
+	if err:
+		return Response.new(err)
+
+	var callback := func(chunk: PackedByteArray):
+		file.store_buffer(chunk)
+
+	var res: Response = await request_with_callback(callback, url, method, query, headers, body)
+	file.close()
+	return res
+
+
 func cancel() -> void:
 	if busy:
 		canceling = true
