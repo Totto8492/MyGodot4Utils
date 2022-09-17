@@ -26,7 +26,7 @@ func poll() -> int:
 	return err
 
 
-func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
+func request_with_callback(callback: Callable, url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
 	if is_busy():
 		return Response.new(ERR_BUSY)
 
@@ -78,11 +78,21 @@ func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, head
 
 			continue
 
-		rb.append_array(chunk)
+		var ret = callback.call(chunk)
+		if ret is PackedByteArray:
+			rb.append_array(ret as PackedByteArray)
 
 	canceling = false
 	busy = false
 	return Response.new(OK, http.get_response_code(), http.get_response_headers(), rb)
+
+
+func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
+	var callback := func(chunk: PackedByteArray):
+		return chunk
+
+	var res: Response = await request_with_callback(callback, url, method, query, headers, body)
+	return res
 
 
 func cancel() -> void:
