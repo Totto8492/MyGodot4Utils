@@ -57,7 +57,7 @@ func get_debug_info() -> PackedStringArray:
 	var s: PackedStringArray = PackedStringArray()
 	for i in connection_pool:
 		var status := DebugUtils.get_enum_key("HTTPClient", "Status", i.get_status())
-		s.append(i.current_url.host + ": " + str(status))
+		s.append(i.get_current_url().host + ": " + str(status))
 
 	return s
 

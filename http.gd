@@ -9,19 +9,19 @@ enum Method {
 	DELETE = HTTPClient.METHOD_DELETE,
 }
 
-var http := HTTPClient.new()
-var current_url := URL.new()
-var canceling := false
-var busy := false
+var _http := HTTPClient.new()
+var _current_url := URL.new()
+var _canceling := false
+var _busy := false
 
 signal do_poll
 
 
 func poll() -> int:
-	if http.get_status() == HTTPClient.STATUS_DISCONNECTED:
+	if _http.get_status() == HTTPClient.STATUS_DISCONNECTED:
 		return OK
 
-	var err := http.poll()
+	var err := _http.poll()
 	emit_signal("do_poll")
 	return err
 
@@ -30,50 +30,50 @@ func request_with_callback(callback: Callable, url: URL, method: Method = Method
 	if is_busy():
 		return Response.new(ERR_BUSY)
 
-	busy = true
+	_busy = true
 	var err := OK
 	if is_reconnect_needed(url):
-		current_url = url
-		http.close()
-		err = http.connect_to_host(url.host, url.port, url.scheme == "https://")
+		_current_url = url
+		_http.close()
+		err = _http.connect_to_host(url.host, url.port, url.scheme == "https://")
 		if err:
-			busy = false
+			_busy = false
 			return Response.new(err)
 
-	current_url = url
-	while http.get_status() == HTTPClient.STATUS_CONNECTING or http.get_status() == HTTPClient.STATUS_RESOLVING:
+	_current_url = url
+	while _http.get_status() == HTTPClient.STATUS_CONNECTING or _http.get_status() == HTTPClient.STATUS_RESOLVING:
 		await do_poll
-		if canceling:
-			canceling = false
-			busy = false
+		if _canceling:
+			_canceling = false
+			_busy = false
 			return Response.new()
 
-	var path_query := http.query_string_from_dict(query)
+	var path_query := _http.query_string_from_dict(query)
 	if not path_query.is_empty():
 		path_query = "?" + path_query
 
-	err = http.request(method, url.path + path_query, headers, body)
+	err = _http.request(method, url.path + path_query, headers, body)
 	if err:
-		busy = false
+		_busy = false
 		return Response.new(err)
 
-	while http.get_status() == HTTPClient.STATUS_REQUESTING:
+	while _http.get_status() == HTTPClient.STATUS_REQUESTING:
 		await do_poll
-		if canceling:
-			canceling = false
-			busy = false
+		if _canceling:
+			_canceling = false
+			_busy = false
 			return Response.new()
 
-	if not http.has_response():
+	if not _http.has_response():
 		return Response.new()
 
 	var rb := PackedByteArray()
-	while http.get_status() == HTTPClient.STATUS_BODY:
-		var chunk = http.read_response_body_chunk()
+	while _http.get_status() == HTTPClient.STATUS_BODY:
+		var chunk = _http.read_response_body_chunk()
 		if chunk.size() == 0:
 			await do_poll
-			if canceling:
-				canceling = false
+			if _canceling:
+				_canceling = false
 				break
 
 			continue
@@ -82,9 +82,9 @@ func request_with_callback(callback: Callable, url: URL, method: Method = Method
 		if ret is PackedByteArray:
 			rb.append_array(ret as PackedByteArray)
 
-	canceling = false
-	busy = false
-	return Response.new(OK, http.get_response_code(), http.get_response_headers(), rb)
+	_canceling = false
+	_busy = false
+	return Response.new(OK, _http.get_response_code(), _http.get_response_headers(), rb)
 
 
 func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
@@ -110,24 +110,28 @@ func request_and_save_to_file(file_path: String, url: URL, method: Method = Meth
 
 
 func cancel() -> void:
-	if busy:
-		canceling = true
+	if _busy:
+		_canceling = true
 		emit_signal("do_poll")
 
-	current_url = URL.new()
-	http.close()
+	_current_url = URL.new()
+	_http.close()
 
 
 func is_busy() -> bool:
-	return busy
+	return _busy
 
 
 func is_reconnect_needed(url: URL) -> bool:
-	if http.get_status() == HTTPClient.STATUS_DISCONNECTED:
+	if _http.get_status() == HTTPClient.STATUS_DISCONNECTED:
 		return true
 
-	return url.scheme != current_url.scheme || url.host != current_url.host || url.port != current_url.port
+	return url.scheme != _current_url.scheme || url.host != _current_url.host || url.port != _current_url.port
 
 
 func get_status() -> int:
-	return http.get_status()
+	return _http.get_status()
+
+
+func get_current_url() -> URL:
+	return _current_url
