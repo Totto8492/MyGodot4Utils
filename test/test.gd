@@ -92,7 +92,7 @@ func test_http() -> void:
 	assert(url != null)
 	assert(url.to_string() == SAMPLE_URL)
 
-	var res: Response = await http.request(url)
+	var res: Response = await http.request(Request.new(url))
 
 	body_label.text = res.body.get_string_from_utf8()
 	assert(res.code == 200)
@@ -100,8 +100,9 @@ func test_http() -> void:
 
 
 func test_http_and_cookie() -> void:
+	var msec := Time.get_ticks_msec()
 	const SAMPLE_URL := "https://httpbin.org/cookies/set?freeform=foo"
-	var res: Response = await simple_http.request(SAMPLE_URL)
+	var res: Response = await simple_http.request(Request.from_string(SAMPLE_URL))
 	var freeform_cookie: Cookie = simple_http.get_cookie("freeform", URL.parse(SAMPLE_URL))
 
 	body_label.text = res.body.get_string_from_utf8()

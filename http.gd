@@ -87,24 +87,23 @@ func request_with_callback(callback: Callable, url: URL, method: Method = Method
 	return Response.new(OK, _http.get_response_code(), _http.get_response_headers(), rb)
 
 
-func request(url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
-	var callback := func(chunk: PackedByteArray):
-		return chunk
+func request(req: Request) -> Response:
+	if req.file_path.is_empty():
+		var callback := func(chunk: PackedByteArray):
+			return chunk
 
-	var res: Response = await request_with_callback(callback, url, method, query, headers, body)
-	return res
+		var res: Response = await request_with_callback(callback, req.url, req.method, req.query, req.headers, req.body)
+		return res
 
-
-func request_and_save_to_file(file_path: String, url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
 	var file := File.new()
-	var err := file.open(file_path, File.WRITE)
+	var err := file.open(req.file_path, File.WRITE)
 	if err:
 		return Response.new(err)
 
 	var callback := func(chunk: PackedByteArray):
 		file.store_buffer(chunk)
 
-	var res: Response = await request_with_callback(callback, url, method, query, headers, body)
+	var res: Response = await request_with_callback(callback, req.url, req.method, req.query, req.headers, req.body)
 	file.close()
 	return res
 

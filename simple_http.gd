@@ -125,12 +125,8 @@ func load_cookies(path: String) -> int:
 	return OK
 
 
-func request(url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictionary = {}, custom_headers: PackedStringArray = PackedStringArray(), max_redirections: int = MAX_REDIRECTIONS) -> Response:
-	return await request_and_save_to_file("", url, method, query, custom_headers, max_redirections)
-
-
-func request_and_save_to_file(file_path: String, url: String, method: HTTP.Method = HTTP.Method.GET, query: Dictionary = {}, custom_headers: PackedStringArray = PackedStringArray(), max_redirections: int = MAX_REDIRECTIONS) -> Response:
-	var current_url := URL.parse(url)
+func request(req: Request, max_redirections: int = MAX_REDIRECTIONS) -> Response:
+	var current_url := req.url
 
 	for i in max_redirections + 1:
 		var http := get_client_from_pool(current_url)
@@ -141,19 +137,24 @@ func request_and_save_to_file(file_path: String, url: String, method: HTTP.Metho
 		var time := Time.get_unix_time_from_system() as int
 		strip_expired_cookies(time)
 
-		var headers := custom_headers
+		var headers := req.headers.duplicate()
 		var cookie_header := Cookie.get_string_from_cookies(cookies, current_url)
 		if not cookie_header.is_empty():
 			headers.append(cookie_header)
 
 		if not user_agent.is_empty():
+			var new_headers := PackedStringArray()
+			for header in headers:
+				if not header.begins_with("User-Agent:"):
+					new_headers.append(header)
+
+			headers = new_headers
 			headers.append("User-Agent: " + user_agent)
 
+		req.url = current_url
+		req.headers = headers
 		var res: Response
-		if file_path.is_empty():
-			res = await http.request(current_url, method, query, headers)
-		else:
-			res = await http.request_and_save_to_file(file_path, current_url, method, query, headers)
+		res = await http.request(req)
 
 		if res.error:
 			return res
