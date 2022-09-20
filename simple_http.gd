@@ -186,3 +186,10 @@ func request(req: Request, max_redirections: int = MAX_REDIRECTIONS) -> Response
 		return res
 
 	return Response.new(ERR_CONNECTION_ERROR)
+
+
+func close_all() -> void:
+	for i in connection_pool:
+		i.cancel()
+
+	connection_pool.clear()

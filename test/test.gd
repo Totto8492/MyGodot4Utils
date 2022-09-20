@@ -117,3 +117,7 @@ func _on_http_test_pressed() -> void:
 
 func _on_http_and_cookie_test_pressed() -> void:
 	test_http_and_cookie()
+
+
+func _on_http_reset_pressed() -> void:
+	simple_http.close_all()
