@@ -152,10 +152,9 @@ func request(req: Request, max_redirections: int = MAX_REDIRECTIONS) -> Response
 			headers = new_headers
 			headers.append("User-Agent: " + user_agent)
 
-		req.url = current_url
-		req.headers = headers
+		var new_req := Request.new(current_url, req.method, req.query.duplicate(), headers, req.body)
 		var res: Response
-		res = await http.request(req)
+		res = await http.request(new_req)
 
 		if res.error:
 			return res
