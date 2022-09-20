@@ -1,3 +1,4 @@
+class_name SimpleHTTP
 extends Node
 
 const MAX_CONNECTIONS := 24

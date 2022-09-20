@@ -1,6 +1,5 @@
 extends Control
 
-var SimpleHTTP := preload("res://simple_http.gd")
 @onready var simple_http := SimpleHTTP.new()
 var http: HTTP = null
 @onready var body_label := %Body as Label
