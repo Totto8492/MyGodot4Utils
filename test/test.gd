@@ -99,7 +99,6 @@ func test_http() -> void:
 
 
 func test_http_and_cookie() -> void:
-	var msec := Time.get_ticks_msec()
 	const SAMPLE_URL := "https://httpbin.org/cookies/set?freeform=foo"
 	var res: Response = await simple_http.request(Request.from_string(SAMPLE_URL))
 	var freeform_cookie: Cookie = simple_http.get_cookie("freeform", URL.parse(SAMPLE_URL))
