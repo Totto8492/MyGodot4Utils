@@ -164,7 +164,7 @@ func request(req: Request, max_redirections: int = MAX_REDIRECTIONS) -> Response
 			remove_cookie(c.key, current_url)
 
 		append_cookies(new_cookies)
-		if res.code == 302:
+		if res.code == 301 or res.code == 302:
 			var location := res.get_header_by_name("location")
 			if location.is_empty():
 				break
