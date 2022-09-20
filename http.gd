@@ -95,10 +95,9 @@ func request(req: Request) -> Response:
 		var res: Response = await request_with_callback(callback, req.url, req.method, req.query, req.headers, req.body)
 		return res
 
-	var file := File.new()
-	var err := file.open(req.file_path, File.WRITE)
-	if err:
-		return Response.new(err)
+	var file := FileAccess.open(req.file_path, FileAccess.WRITE)
+	if not file:
+		return Response.new(FileAccess.get_open_error())
 
 	var callback := func(chunk: PackedByteArray):
 		file.store_buffer(chunk)

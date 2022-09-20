@@ -99,8 +99,8 @@ func strip_expired_cookies(time: int) -> void:
 
 
 func save_cookies(path: String, include_session_cookies: bool = false) -> int:
-	var file := File.new()
-	var err := file.open(path, File.WRITE)
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	var err := FileAccess.get_open_error()
 	if err:
 		return err
 
@@ -116,8 +116,8 @@ func save_cookies(path: String, include_session_cookies: bool = false) -> int:
 
 
 func load_cookies(path: String) -> int:
-	var file := File.new()
-	var err := file.open(path, File.READ)
+	var file := FileAccess.open(path, FileAccess.READ)
+	var err := FileAccess.get_open_error()
 	if err:
 		return err
 
