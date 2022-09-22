@@ -65,3 +65,8 @@ run/low_processor_mode_sleep_usec=16000
 [display]
 
 window/vsync/vsync_mode=0
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
