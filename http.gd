@@ -95,7 +95,6 @@ func request(req: Request) -> Response:
 		file.store_buffer(chunk)
 
 	var res: Response = await request_with_callback(callback, req.url, req.method, req.query, req.headers, req.body)
-	file.close()
 	return res
 
 

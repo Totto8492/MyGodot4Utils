@@ -111,7 +111,6 @@ func save_cookies(path: String, include_session_cookies: bool = false) -> int:
 		var filtered_cookies := cookies.filter(f)
 		file.store_string(var_to_str(filtered_cookies))
 
-	file.close()
 	return OK
 
 
@@ -122,7 +121,6 @@ func load_cookies(path: String) -> int:
 		return err
 
 	cookies = str_to_var(file.get_as_text())
-	file.close()
 	return OK
 
 
