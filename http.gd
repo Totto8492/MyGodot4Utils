@@ -1,14 +1,6 @@
 class_name HTTP
 extends RefCounted
 
-enum Method {
-	GET = HTTPClient.METHOD_GET,
-	HEAD = HTTPClient.METHOD_HEAD,
-	POST = HTTPClient.METHOD_POST,
-	PUT = HTTPClient.METHOD_PUT,
-	DELETE = HTTPClient.METHOD_DELETE,
-}
-
 var _http := HTTPClient.new()
 var _current_url := URL.new()
 var _canceling := false
@@ -26,7 +18,7 @@ func poll() -> int:
 	return err
 
 
-func request_with_callback(callback: Callable, url: URL, method: Method = Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
+func request_with_callback(callback: Callable, url: URL, method: Request.Method = Request.Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
 	if is_busy():
 		return Response.new(ERR_BUSY)
 
