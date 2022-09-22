@@ -17,7 +17,7 @@ var body: String
 var file_path: String
 
 
-func  _init(_url: URL, _method: Method = Method.GET, _query: Dictionary = {}, _headers: PackedStringArray = PackedStringArray(), _body: String = "") -> void:
+func  _init(_url: URL, _method := Method.GET, _query := {}, _headers := PackedStringArray(), _body := "") -> void:
 	url = _url
 	method = _method
 	query = _query
@@ -25,6 +25,6 @@ func  _init(_url: URL, _method: Method = Method.GET, _query: Dictionary = {}, _h
 	body = _body
 	file_path = ""
 
-static func from_string(_url: String, _method: Method = Method.GET, _query: Dictionary = {}, _headers: PackedStringArray = PackedStringArray(), _body: String = "") -> Request:
+static func from_string(_url: String, _method := Method.GET, _query := {}, _headers := PackedStringArray(), _body := "") -> Request:
 	var ret := new(URL.parse(_url), _method, _query, _headers, _body)
 	return ret

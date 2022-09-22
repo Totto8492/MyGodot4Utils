@@ -7,7 +7,7 @@ var headers: PackedStringArray = PackedStringArray()
 var body: PackedByteArray = PackedByteArray()
 
 
-func _init(_error: int = OK, _code: int = 0, _headers: PackedStringArray = PackedStringArray(), _body: PackedByteArray = PackedByteArray()) -> void:
+func _init(_error := OK, _code := 0, _headers := PackedStringArray(), _body := PackedByteArray()) -> void:
 	error = _error
 	code = _code
 	headers = _headers

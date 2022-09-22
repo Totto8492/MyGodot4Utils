@@ -18,7 +18,7 @@ func poll() -> int:
 	return err
 
 
-func request_with_callback(callback: Callable, url: URL, method: Request.Method = Request.Method.GET, query: Dictionary = {}, headers: PackedStringArray = PackedStringArray(), body: String = "") -> Response:
+func request_with_callback(callback: Callable, url: URL, method := Request.Method.GET, query := {}, headers := PackedStringArray(), body := "") -> Response:
 	if is_busy():
 		return Response.new(ERR_BUSY)
 
