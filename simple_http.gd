@@ -3,7 +3,7 @@ extends Node
 
 const MAX_CONNECTIONS := 24
 const MAX_CONNECTIONS_SAMESITE := 6
-const MAX_REDIRECTIONS := 5
+var max_redirections := 5
 var connection_pool: Array[HTTP] = []
 var cookies: Array[Cookie] = []
 var user_agent := ""
@@ -124,7 +124,7 @@ func load_cookies(path: String) -> int:
 	return OK
 
 
-func request(req: Request, max_redirections: int = MAX_REDIRECTIONS) -> Response:
+func request(req: Request) -> Response:
 	var current_url := req.url
 
 	for i in max_redirections + 1:
