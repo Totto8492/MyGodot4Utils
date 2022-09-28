@@ -4,6 +4,7 @@ extends Node
 const MAX_CONNECTIONS := 24
 const MAX_CONNECTIONS_SAMESITE := 6
 var max_redirects := 10
+var download_chunk_size := 65536
 var connection_pool: Array[HTTP] = []
 var cookies: Array[Cookie] = []
 var user_agent := ""

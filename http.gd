@@ -9,6 +9,10 @@ var _busy := false
 signal do_poll
 
 
+func set_options(download_chunk_size: int, body_size_limit: int, timeout: float):
+	_http.read_chunk_size = download_chunk_size
+
+
 func poll() -> int:
 	if _http.get_status() == HTTPClient.STATUS_DISCONNECTED:
 		return OK
