@@ -3,7 +3,7 @@ extends Node
 
 const MAX_CONNECTIONS := 24
 const MAX_CONNECTIONS_SAMESITE := 6
-var max_redirections := 5
+var max_redirects := 10
 var connection_pool: Array[HTTP] = []
 var cookies: Array[Cookie] = []
 var user_agent := ""
@@ -127,7 +127,7 @@ func load_cookies(path: String) -> int:
 func request(req: Request) -> Response:
 	var current_url := req.url
 
-	for i in max_redirections + 1:
+	for i in max_redirects + 1:
 		var http := get_client_from_pool(current_url)
 		while not http:
 			await get_tree().process_frame
